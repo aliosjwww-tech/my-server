@@ -3,48 +3,47 @@ const axios = require('axios');
 const cors = require('cors');
 
 const app = express();
-// استخدام البورت المخصص من السيرفر أو البورت 3000 افتراضياً
 const PORT = process.env.PORT || 3000;
 
-// تفعيل CORS للسماح لموقعك بطلب البيانات من السيرفر بدون حظر
+// تفعيل CORS لجميع المصادر للسماح للواجهة بالاتصال بالسيرفر
 app.use(cors());
 
-// 1. مسار جلب الأقسام الرئيسية
-app.get('/api/categories', async (req, res) => {
+const HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Referer': 'https://cee.buzz/'
+};
+
+// مسار تجريبي للتأكد من أن السيرفر يعمل
+app.get('/', (req, res) => {
+    res.json({ status: 'Server is running successfully!' });
+});
+
+// مسار جلب أحدث الأفلام والمسلسلات
+app.get('/api/latest', async (req, res) => {
     try {
-        const response = await axios.get('https://cee.buzz/api/android/subCategories?lang=ar', {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Referer': 'https://cee.buzz/',
-                'Accept': 'application/json, text/plain, */*'
-            }
-        });
+        const response = await axios.get('https://cee.buzz/api/v1/latest', { headers: HEADERS });
         res.json(response.data);
     } catch (error) {
-        console.error('Error fetching categories:', error.message);
-        res.status(500).json({ error: 'فشل في جلب الأقسام من السيرفر المصدر' });
+        // في حال فشل المصدر الرئيسي، نرجع استجابة مرنة
+        res.status(500).json({ error: 'Failed to fetch latest content from source' });
     }
 });
 
-// 2. مسار جلب محتوى قسم معين بواسطة الـ ID
-app.get('/api/category/:id', async (req, res) => {
+// مسار البحث
+app.get('/api/search', async (req, res) => {
+    const query = req.query.q;
+    if (!query) {
+        return res.status(400).json({ error: 'Query parameter "q" is required' });
+    }
+
     try {
-        const categoryId = req.params.id;
-        const response = await axios.get(`https://cee.buzz/api/android/subCategories/${categoryId}?lang=ar`, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Referer': 'https://cee.buzz/',
-                'Accept': 'application/json, text/plain, */*'
-            }
-        });
+        const response = await axios.get(`https://cee.buzz/api/v1/search?q=${encodeURIComponent(query)}`, { headers: HEADERS });
         res.json(response.data);
     } catch (error) {
-        console.error('Error fetching category data:', error.message);
-        res.status(500).json({ error: 'فشل في جلب بيانات القسم' });
+        res.status(500).json({ error: 'Failed to search content' });
     }
 });
 
-// تشغيل السيرفر
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Proxy server is running on port ${PORT}`);
 });
