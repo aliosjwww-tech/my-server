@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سينما العراق - Cinema Iraq</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: #1e293b;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #38bdf8;
+            text-decoration: none;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 0.5rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background-color: #0f172a;
+            color: #fff;
+            outline: none;
+        }
+
+        .search-box button {
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            border: none;
+            background-color: #0284c7;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .search-box button:hover {
+            background-color: #0369a1;
+        }
+
+        main {
+            padding: 2rem;
+            flex: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            border-right: 4px solid #38bdf8;
+            padding-right: 0.5rem;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background-color: #1e293b;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+
+        .card img {
+            width: 100%;
+            height: 260px;
+            object-fit: cover;
+        }
+
+        .card-info {
+            padding: 0.8rem;
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* المشغل Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background-color: #1e293b;
+            width: 100%;
+            max-width: 900px;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            font-size: 1.8rem;
+            color: #fff;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .iframe-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+        }
+
+        .iframe-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.2rem;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="#" class="logo">سينما العراق</a>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="ابحث عن فيلم أو مسلسل...">
+            <button onclick="searchMedia()">بحث</button>
+        </div>
+    </header>
+
+    <main>
+        <h2 class="section-title" id="sectionTitle">أحدث العروض</h2>
+        <div id="contentGrid" class="grid-container">
+            <div class="loading">جاري تحميل المحتوى...</div>
+        </div>
+    </main>
+
+    <!-- نافذة عرض الفيديو -->
+    <div id="playerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closePlayer()">&times;</span>
+            <div class="iframe-container">
+                <iframe id="videoPlayer" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // رابط السيرفر المباشر الخاص بك على Railway
+        const API_BASE_URL = 'https://my-server-production-a659.up.railway.app';
+
+        // جلب أحدث المحتويات عند فتح الصفحة
+        window.onload = () => {
+            fetchLatest();
+        };
+
+        async function fetchLatest() {
+            const grid = document.getElementById('contentGrid');
+            grid.innerHTML = '<div class="loading">جاري التحميل...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/latest`);
+                const data = await response.json();
+                displayResults(data.results || data);
+            } catch (error) {
+                console.error('Error:', error);
+                grid.innerHTML = '<div class="loading">حدث خطأ أثناء تحميل البيانات من السيرفر.</div>';
+            }
+        }
+
+        async function searchMedia() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            const grid = document.getElementById('contentGrid');
+            document.getElementById('sectionTitle').innerText = `نتائج البحث عن: ${query}`;
+            grid.innerHTML = '<div class="loading">جاري البحث...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                displayResults(data.results || data);
+            } catch (error) {
+                console.error('Error:', error);
+                grid.innerHTML = '<div class="loading">تعذر الحصول على نتائج البحث.</div>';
+            }
+        }
+
+        function displayResults(items) {
+            const grid = document.getElementById('contentGrid');
+            grid.innerHTML = '';
+
+            if (!items || items.length === 0) {
+                grid.innerHTML = '<div class="loading">لم يتم العثور على أي نتائج.</div>';
+                return;
+            }
+
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                const title = item.title || item.name || 'بدون عنوان';
+                const poster = item.poster || item.image || 'https://via.placeholder.com/300x450?text=No+Image';
+                const streamUrl = item.stream_url || item.url || '#';
+
+                card.innerHTML = `
+                    <img src="${poster}" alt="${title}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
+                    <div class="card-info">
+                        <div class="card-title">${title}</div>
+                    </div>
+                `;
+
+                card.onclick = () => openPlayer(streamUrl);
+                grid.appendChild(card);
+            });
+        }
+
+        function openPlayer(url) {
+            if (!url || url === '#') {
+                alert('رابط التشغيل غير متوفر لهذا العنصر.');
+                return;
+            }
+            const modal = document.getElementById('playerModal');
+            const iframe = document.getElementById('videoPlayer');
+            iframe.src = url;
+            modal.style.display = 'flex';
+        }
+
+        function closePlayer() {
+            const modal = document.getElementById('playerModal');
+            const iframe = document.getElementById('videoPlayer');
+            iframe.src = '';
+            modal.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
