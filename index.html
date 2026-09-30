@@ -3,30 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سينما العراق - Cinema Iraq</title>
+    <title>سينمانا - Cinema</title>
     <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --accent-color: #f5c518;
+            --text-color: #ffffff;
+            --text-secondary: #8b949e;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
         }
 
         body {
-            background-color: #0f172a;
-            color: #f8fafc;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-bottom: 50px;
         }
 
+        /* الهيدر وشريط البحث */
         header {
-            background-color: #1e293b;
-            padding: 1rem 2rem;
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            background-color: #161b22;
+            gap: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             position: sticky;
             top: 0;
             z-index: 100;
@@ -35,263 +43,231 @@
         .logo {
             font-size: 1.5rem;
             font-weight: bold;
-            color: #38bdf8;
-            text-decoration: none;
+            color: var(--accent-color);
         }
 
         .search-box {
-            display: flex;
-            gap: 0.5rem;
             width: 100%;
-            max-width: 400px;
+            max-width: 500px;
+            position: relative;
         }
 
         .search-box input {
             width: 100%;
-            padding: 0.6rem 1rem;
-            border-radius: 8px;
-            border: 1px solid #334155;
-            background-color: #0f172a;
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 1px solid #30363d;
+            background-color: #0d1117;
             color: #fff;
             outline: none;
+            font-size: 0.95rem;
         }
 
-        .search-box button {
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            border: none;
-            background-color: #0284c7;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .search-box button:hover {
-            background-color: #0369a1;
-        }
-
-        main {
-            padding: 2rem;
-            flex: 1;
-            max-width: 1400px;
-            margin: 0 auto;
-            width: 100%;
+        /* شبكة عرض الأفلام */
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
         }
 
         .section-title {
-            font-size: 1.4rem;
-            margin-bottom: 1.5rem;
-            border-right: 4px solid #38bdf8;
-            padding-right: 0.5rem;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            border-right: 4px solid var(--accent-color);
+            padding-right: 10px;
         }
 
-        .grid-container {
+        .movies-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 15px;
         }
 
-        .card {
-            background-color: #1e293b;
-            border-radius: 12px;
+        .movie-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
             overflow: hidden;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s;
             position: relative;
         }
 
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        .movie-card:hover {
+            transform: scale(1.03);
         }
 
-        .card img {
+        .movie-card img {
             width: 100%;
-            height: 260px;
+            height: 190px;
             object-fit: cover;
         }
 
-        .card-info {
-            padding: 0.8rem;
+        .movie-info {
+            padding: 8px;
         }
 
-        .card-title {
-            font-size: 0.95rem;
-            font-weight: 600;
+        .movie-title {
+            font-size: 0.85rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        /* المشغل Modal */
-        .modal {
+        .movie-rating {
+            font-size: 0.75rem;
+            color: var(--accent-color);
+            margin-top: 4px;
+        }
+
+        /* مشغل الفيديو (Modal) */
+        .player-modal {
             display: none;
             position: fixed;
-            inset: 0;
-            background-color: rgba(0, 0, 0, 0.85);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 1rem;
-        }
-
-        .modal-content {
-            background-color: #1e293b;
-            width: 100%;
-            max-width: 900px;
-            border-radius: 12px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            left: 15px;
-            font-size: 1.8rem;
-            color: #fff;
-            cursor: pointer;
-            z-index: 10;
-        }
-
-        .iframe-container {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-        }
-
-        .iframe-container iframe {
-            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            border: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
         }
 
-        .loading {
-            text-align: center;
-            padding: 3rem;
+        .player-modal.active {
+            display: flex;
+        }
+
+        .player-container {
+            width: 95%;
+            max-width: 800px;
+            aspect-ratio: 16/9;
+            background: #000;
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .player-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: -35px;
+            left: 0;
+            color: #fff;
+            background: none;
+            border: none;
             font-size: 1.2rem;
-            color: #94a3b8;
+            cursor: pointer;
+        }
+
+        /* رسالة التحميل والخطأ */
+        .status-msg {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+            grid-column: 1 / -1;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <a href="#" class="logo">سينما العراق</a>
+        <div class="logo">🎬 سينمانا</div>
         <div class="search-box">
-            <input type="text" id="searchInput" placeholder="ابحث عن فيلم أو مسلسل...">
-            <button onclick="searchMedia()">بحث</button>
+            <input type="text" id="searchInput" placeholder="ابحث عن فيلم أو مسلسل..." onkeyup="handleSearch()">
         </div>
     </header>
 
-    <main>
-        <h2 class="section-title" id="sectionTitle">أحدث العروض</h2>
-        <div id="contentGrid" class="grid-container">
-            <div class="loading">جاري تحميل المحتوى...</div>
+    <div class="container">
+        <h2 class="section-title">أحدث العروض</h2>
+        <div class="movies-grid" id="moviesContainer">
+            <div class="status-msg">جاري تحميل المحتوى...</div>
         </div>
-    </main>
+    </div>
 
-    <!-- نافذة عرض الفيديو -->
-    <div id="playerModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closePlayer()">&times;</span>
-            <div class="iframe-container">
-                <iframe id="videoPlayer" src="" allowfullscreen></iframe>
-            </div>
+    <!-- نافذة المشغل -->
+    <div class="player-modal" id="playerModal">
+        <div class="player-container">
+            <button class="close-btn" onclick="closePlayer()">✕ إغلاق</button>
+            <iframe id="videoIframe" src="" allowfullscreen></iframe>
         </div>
     </div>
 
     <script>
-        // رابط السيرفر المباشر الخاص بك على Railway
+        // رابط سيرفرك الفعلي المنشور على Railway
         const API_BASE_URL = 'https://my-server-production-a659.up.railway.app';
 
-        // جلب أحدث المحتويات عند فتح الصفحة
-        window.onload = () => {
-            fetchLatest();
-        };
-
-        async function fetchLatest() {
-            const grid = document.getElementById('contentGrid');
-            grid.innerHTML = '<div class="loading">جاري التحميل...</div>';
-
+        // 1. جلب قائمة الأفلام عند فتح الصفحة
+        async function fetchMovies(query = '') {
+            const container = document.getElementById('moviesContainer');
+            
             try {
-                const response = await fetch(`${API_BASE_URL}/api/latest`);
-                const data = await response.json();
-                displayResults(data.results || data);
-            } catch (error) {
-                console.error('Error:', error);
-                grid.innerHTML = '<div class="loading">حدث خطأ أثناء تحميل البيانات من السيرفر.</div>';
-            }
-        }
+                const endpoint = query 
+                    ? `${API_BASE_URL}/api/search?q=${encodeURIComponent(query)}`
+                    : `${API_BASE_URL}/api/latest`;
 
-        async function searchMedia() {
-            const query = document.getElementById('searchInput').value.trim();
-            if (!query) return;
-
-            const grid = document.getElementById('contentGrid');
-            document.getElementById('sectionTitle').innerText = `نتائج البحث عن: ${query}`;
-            grid.innerHTML = '<div class="loading">جاري البحث...</div>';
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/search?q=${encodeURIComponent(query)}`);
-                const data = await response.json();
-                displayResults(data.results || data);
-            } catch (error) {
-                console.error('Error:', error);
-                grid.innerHTML = '<div class="loading">تعذر الحصول على نتائج البحث.</div>';
-            }
-        }
-
-        function displayResults(items) {
-            const grid = document.getElementById('contentGrid');
-            grid.innerHTML = '';
-
-            if (!items || items.length === 0) {
-                grid.innerHTML = '<div class="loading">لم يتم العثور على أي نتائج.</div>';
-                return;
-            }
-
-            items.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'card';
+                const res = await fetch(endpoint);
+                if (!res.ok) throw new Error('تعذر الاتصال بالسيرفر');
                 
-                const title = item.title || item.name || 'بدون عنوان';
-                const poster = item.poster || item.image || 'https://via.placeholder.com/300x450?text=No+Image';
-                const streamUrl = item.stream_url || item.url || '#';
-
-                card.innerHTML = `
-                    <img src="${poster}" alt="${title}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
-                    <div class="card-info">
-                        <div class="card-title">${title}</div>
-                    </div>
-                `;
-
-                card.onclick = () => openPlayer(streamUrl);
-                grid.appendChild(card);
-            });
+                const movies = await res.json();
+                renderMovies(movies);
+            } catch (err) {
+                container.innerHTML = `<div class="status-msg">⚠️ تعذر تحميل المحتوى، تأكد من الضغط على Deploy في Railway.</div>`;
+            }
         }
 
-        function openPlayer(url) {
-            if (!url || url === '#') {
-                alert('رابط التشغيل غير متوفر لهذا العنصر.');
+        // 2. عرض البطاقات
+        function renderMovies(movies) {
+            const container = document.getElementById('moviesContainer');
+            if (!movies || movies.length === 0) {
+                container.innerHTML = `<div class="status-msg">لا توجد نتائج لعرضها.</div>`;
                 return;
             }
-            const modal = document.getElementById('playerModal');
-            const iframe = document.getElementById('videoPlayer');
-            iframe.src = url;
-            modal.style.display = 'flex';
+
+            container.innerHTML = movies.map(movie => `
+                <div class="movie-card" onclick="openPlayer('${movie.id}')">
+                    <img src="${movie.poster || 'https://via.placeholder.com/150x220'}" alt="${movie.title}" loading="lazy">
+                    <div class="movie-info">
+                        <div class="movie-title">${movie.title}</div>
+                        <div class="movie-rating">★ ${movie.rating || 'N/A'}</div>
+                    </div>
+                </div>
+            `).join('');
         }
 
+        // 3. البحث المقيد بوقفه زمنية
+        let searchTimer;
+        function handleSearch() {
+            clearTimeout(searchTimer);
+            const query = document.getElementById('searchInput').value.trim();
+            searchTimer = setTimeout(() => fetchMovies(query), 500);
+        }
+
+        // 4. تشغيل الفيديو في المشغل
+        function openPlayer(movieId) {
+            const modal = document.getElementById('playerModal');
+            const iframe = document.getElementById('videoIframe');
+            
+            iframe.src = `https://cee.buzz/player.html?id=${movieId}`;
+            modal.classList.add('active');
+        }
+
+        // 5. إغلاق المشغل
         function closePlayer() {
             const modal = document.getElementById('playerModal');
-            const iframe = document.getElementById('videoPlayer');
-            iframe.src = '';
-            modal.style.display = 'none';
+            const iframe = document.getElementById('videoIframe');
+            
+            iframe.src = ''; 
+            modal.classList.remove('active');
         }
+
+        // التشغيل المبدئي
+        fetchMovies();
     </script>
 </body>
 </html>
